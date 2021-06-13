@@ -1,0 +1,6 @@
+# conda dependence for naonfilt
+name: biopython
+channels:
+  - conda-forge
+dependencies:
+  - biopython

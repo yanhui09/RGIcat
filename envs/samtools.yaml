@@ -1,0 +1,8 @@
+# conda dependence for naonfilt
+name: samtools
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - samtools
+  - perl
