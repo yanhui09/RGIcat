@@ -1,4 +1,4 @@
-# conda dependence for naonfilt
+# conda dependence for biopython
 name: biopython
 channels:
   - conda-forge

@@ -1,4 +1,4 @@
-# conda dependence for naonfilt
+# conda dependence for samtools
 name: samtools
 channels:
   - bioconda

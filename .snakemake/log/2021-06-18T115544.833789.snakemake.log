@@ -1,0 +1,2 @@
+SyntaxError in line 32 of /home/yanhui/Sdevelop/RGIcat/Snakefile:
+No rule keywords allowed after run/shell/script/wrapper/cwl in rule extract_AMG. (Snakefile, line 32)
