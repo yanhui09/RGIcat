@@ -1,4 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 68 of /home/yanhui/Sdevelop/RGIcat/Snakefile:
-Missing input files for rule cleanup_fq_names:
-/mnt/md0/RGIcat_test/fqs/17119-02-lib3-18.sorted

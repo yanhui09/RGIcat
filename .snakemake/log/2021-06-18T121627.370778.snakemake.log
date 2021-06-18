@@ -1,2 +1,0 @@
-SyntaxError in line 104 of /home/yanhui/Sdevelop/RGIcat/Snakefile:
-No rule keywords allowed after run/shell/script/wrapper/cwl in rule samtools_sort. (Snakefile, line 104)

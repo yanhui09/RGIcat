@@ -1,4 +1,0 @@
-ValueError in line 9 of /home/yanhui/Sdevelop/RGIcat/Snakefile:
-Encountered duplicate field name: 'sample'
-  File "/home/yanhui/Sdevelop/RGIcat/Snakefile", line 9, in <module>
-  File "/home/yanhui/anaconda3/envs/snakemake6/lib/python3.9/collections/__init__.py", line 402, in namedtuple
