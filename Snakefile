@@ -125,7 +125,7 @@ rule samtools_index:
 
 rule header_sample:
     input:
-        expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE)
+        bai=expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE)
     output:
         temp(OUTPUT_DIR + "/header_sample")
     params:
@@ -141,7 +141,8 @@ rule header_sample:
 
 rule gene_names:
     input:
-        expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE)
+        bam=expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam", sample=SAMPLE),
+        bai=expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE)
     output:
         temp(OUTPUT_DIR + "/gene_names")
     conda:
@@ -150,7 +151,7 @@ rule gene_names:
         OUTPUT_DIR + "/logs/gene_names.log"
     shell:
         """
-        samtools idxstats $(ls {input} | head -n 1) | grep -v "*" | cut -f1 > gene_names
+        samtools idxstats $(ls {input.bam} | head -n 1) | grep -v "*" | cut -f1 > {output}
         """
        
 rule gene_count:
