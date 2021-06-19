@@ -1,8 +1,0 @@
-# conda dependence for samtools
-name: samtools
-channels:
-  - bioconda
-  - conda-forge
-dependencies:
-  - samtools
-  - perl

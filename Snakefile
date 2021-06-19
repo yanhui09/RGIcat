@@ -5,14 +5,13 @@ INPUT_DIR=config["fq_dir"].rstrip("/")
 OUTPUT_DIR=config["results_dir"].rstrip("/")
 VOTUS_FA=config["votus_fa"].rstrip("/")
 RGI_TAB=config["rgi_tab"].rstrip("/")
+THREADS=config["threads"]
 
-SAMPLE=glob_wildcards(INPUT_DIR + "/{dir}/{sample}_S0_L001_R1_001.fastq.gz").dir
-
+SAMPLE=glob_wildcards(INPUT_DIR + "/{dir}/{file}.fastq.gz").dir
 #---------------
 
 # Allow users to fix the underlying OS via singularity.
 #singularity: "docker://continuumio/miniconda3"
-
 rule all:
     input:
         OUTPUT_DIR + "/count_matrix.tsv",
@@ -35,39 +34,42 @@ rule extract_AMG:
         scripts/extract_RGI_fasta.py -b {input.rgi} -i {input.votus} -o {params} >> {log} 2>&1
         """
 
-# Choose representative AMG ORF (Clustal Omega)
-rule clustalo:
+# Choose representative AMG ORF
+# Clustal Omega discarded (only do alignment), use cd-hit instead
+# 95% similarity in 90% covered alignment, > 100 bp
+rule cd_hit:
     input:
         OUTPUT_DIR + "/AMG/AMG.fasta"
     output:
-        OUTPUT_DIR + "/AMG/AMG.msa.fasta"
-    params:
-        extra=""
+        OUTPUT_DIR + "/AMG/AMG.cdhit.fasta"
+    conda:
+        "envs/cdhit.yaml"
     log:
-        OUTPUT_DIR + "/logs/clustalo.log"
-    threads: 8
-    wrapper:
-        "v0.75.0/bio/clustalo"
+        OUTPUT_DIR + "/logs/cdhit.log"
+    threads: THREADS
+    shell:
+        "cd-hit-est -i {input} -o {output} -c 0.95 -n 8 -l 100 -aS 0.9 -d 0 -B 0 -T 2 -M 10000"
 
 rule bwt2_build:
     input:
-        reference=OUTPUT_DIR + "/AMG/AMG.msa.fasta"
+        reference=OUTPUT_DIR + "/AMG/AMG.cdhit.fasta"
     output:
         multiext(
-            OUTPUT_DIR + "/AMG/AMG.msa",
+            OUTPUT_DIR + "/AMG/AMG.cdhit",
             ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2",
         ),
     log:
         OUTPUT_DIR + "/logs/bowtie2_build/build.log"
+    conda:
+        "envs/bwt2sam.yaml" # libtbb.so.2 incompetence due to conda-forge updates
     params:
         extra=""  # optional parameters
-    threads: 4
+    threads: THREADS
     wrapper:
         "v0.75.0/bio/bowtie2/build"
 
 rule cleanup_fq_names:
     input: 
-        index=rules.bwt2_build.output,
         sample=INPUT_DIR + "/{sample}",
     output:
         r1 = INPUT_DIR + "/{sample}/{sample}_R1.fastq.gz",
@@ -80,15 +82,18 @@ rule cleanup_fq_names:
 
 rule bwt2_map:
     input:
+        index=rules.bwt2_build.output,
         sample=[INPUT_DIR + "/{sample}/{sample}_R1.fastq.gz", INPUT_DIR + "/{sample}/{sample}_R2.fastq.gz"]
     output:
         temp(OUTPUT_DIR + "/mapped/{sample}.bam")
     log:
         OUTPUT_DIR + "/logs/bowtie2/{sample}.log"
+    conda:
+        "envs/bwt2sam.yaml" # libtbb.so.2 incompetence due to conda-forge updates
     params:
-        index=OUTPUT_DIR + "/AMG/AMG.msa",  # prefix of reference genome index (built with bowtie2-build)
+        index=OUTPUT_DIR + "/AMG/AMG.cdhit",  # prefix of reference genome index (built with bowtie2-build)
         extra=""  # optional parameters
-    threads: 8  # Use at least two threads
+    threads: THREADS  # Use at least two threads
     wrapper:
         "v0.75.0/bio/bowtie2/align"
 
@@ -98,7 +103,7 @@ rule samtools_sort:
     output:
         temp(OUTPUT_DIR + "/mapped/{sample}.sorted.bam")
     conda:
-        "envs/samtools.yaml"
+        "envs/bwt2sam.yaml"
     log:
         OUTPUT_DIR + "/logs/samtools/sorted/{sample}.log"
     shell:
@@ -114,7 +119,7 @@ rule samtools_index:
     params:
         "" # optional params string
     threads:  # Samtools takes additional threads through its option -@
-        4     # This value - 1 will be sent to -@
+        THREADS     # This value - 1 will be sent to -@
     wrapper:
         "v0.75.0/bio/samtools/index"
 
@@ -123,12 +128,14 @@ rule header_sample:
         expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE)
     output:
         temp(OUTPUT_DIR + "/header_sample")
+    params:
+        sample=SAMPLE
     log:
         OUTPUT_DIR + "/logs/header_sample.log"
     run:
         """
         with open(OUTPUT_DIR + "/header_sample", 'w') as f:
-             for i in SAMPLE:
+             for i in params.sample:
                  f.write("%s\t" % i)
         """
 
@@ -138,7 +145,7 @@ rule gene_names:
     output:
         temp(OUTPUT_DIR + "/gene_names")
     conda:
-        "envs/samtools.yaml"
+        "envs/bwt2sam.yaml"
     log:
         OUTPUT_DIR + "/logs/gene_names.log"
     shell:
@@ -153,7 +160,7 @@ rule gene_count:
     output:
         temp(OUTPUT_DIR + "/counts/{sample}.count")
     conda:
-        "envs/samtools.yaml"
+        "envs/bwt2sam.yaml"
     log:
         OUTPUT_DIR + "/logs/counts/{sample}.log"
     shell:
