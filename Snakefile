@@ -8,6 +8,7 @@ RGI_TAB=config["rgi_tab"].rstrip("/")
 THREADS=config["threads"]
 
 SAMPLE=glob_wildcards(INPUT_DIR + "/{dir}/{file}.fastq.gz").dir
+SAMPLE=list(set(SAMPLE)) # unique dirnames
 #---------------
 
 # Allow users to fix the underlying OS via singularity.
@@ -125,19 +126,14 @@ rule samtools_index:
 
 rule header_sample:
     input:
-        bai=expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE)
+        bai=expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE),
     output:
         temp(OUTPUT_DIR + "/header_sample")
-    params:
-        sample=SAMPLE
     log:
         OUTPUT_DIR + "/logs/header_sample.log"
     run:
-        """
-        with open(OUTPUT_DIR + "/header_sample", 'w') as f:
-             for i in params.sample:
-                 f.write("%s\t" % i)
-        """
+        with open(output[0], 'w') as f:
+            f.write('\t'.join(SAMPLE) + '\n')
 
 rule gene_names:
     input:
