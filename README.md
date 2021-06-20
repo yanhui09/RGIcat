@@ -25,7 +25,7 @@ mamba create -c conda-forge -c bioconda -n snakemake snakemake
 
 The pipeline follows the Snakemake usage, more details can be found on the [official tutorials](https://snakemake.readthedocs.io).
 
-To start a new run, please revise the config file accordingly. The input R1 and R2 fastq files shall be placed in the directories separated by the sample names. Below is a demo for the `config.yaml`.
+**To start a new run**, please revise the config file accordingly. The input R1 and R2 fastq files shall be placed in the directories separated by the sample names. Below is a demo for the `config.yaml`.
 
 ```
 # This file should contain everything to configure the workflow on a global scale.
@@ -44,7 +44,7 @@ rgi_tab: "/path/to/RGI.tab"
 threads: the number of threads
 ```
 
-To run the workflow
+**To run the workflow**
 
 ```
 snakemake --core 6 --use-conda
