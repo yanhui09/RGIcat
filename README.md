@@ -21,7 +21,7 @@ conda activate base
 mamba create -c conda-forge -c bioconda -n snakemake snakemake
 ```
 
-Clone the repository
+**Clone the repository**
 ```
 git clone https://github.com/yanhui09/RGIcat.git
 ```
@@ -49,7 +49,7 @@ rgi_tab: "/path/to/RGI.tab"
 threads: the number of threads
 ```
 
-**To run the workflow**, go to the cloned workflow directory
+**To run the workflow**, go to the cloned workflow directory.
 
 ```
 snakemake --core 6 --use-conda
