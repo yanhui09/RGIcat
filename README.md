@@ -30,7 +30,7 @@ git clone https://github.com/yanhui09/RGIcat.git
 
 The pipeline follows the Snakemake usage, more details can be found on the [official tutorials](https://snakemake.readthedocs.io).
 
-**To start a new run**, please revise the config file accordingly. The input R1 and R2 fastq files shall be placed in the directories separated by the sample names. Below is a demo for the `config.yaml`.
+**To start a new run**, please revise the config file accordingly. The input R1 and R2 fastq files shall be placed in the directories **separated by the sample names**. Below is a demo for the `config.yaml`.
 
 ```
 # This file should contain everything to configure the workflow on a global scale.
@@ -42,7 +42,7 @@ threads: 4
 ```
 
 ```
-fq_dir: "/path/to/fqs"
+fq_dir: "/path/to/fqs_dirs"
 results_dir: "/path/to/results"
 votus_fa: "/path/to/contig.fasta"
 rgi_tab: "/path/to/RGI.tab"
