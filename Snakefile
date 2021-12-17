@@ -124,17 +124,6 @@ rule samtools_index:
     wrapper:
         "v0.75.0/bio/samtools/index"
 
-rule header_sample:
-    input:
-        bai=expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam.bai", sample=SAMPLE),
-    output:
-        temp(OUTPUT_DIR + "/header_sample")
-    log:
-        OUTPUT_DIR + "/logs/header_sample.log"
-    run:
-        with open(output[0], 'w') as f:
-            f.write('\t'.join(SAMPLE) + '\n')
-
 rule gene_names:
     input:
         bam=expand(OUTPUT_DIR + "/mapped/{sample}.sorted.bam", sample=SAMPLE),
@@ -147,7 +136,8 @@ rule gene_names:
         OUTPUT_DIR + "/logs/gene_names.log"
     shell:
         """
-        samtools idxstats $(ls {input.bam} | head -n 1) | grep -v "*" | cut -f1 > {output}
+        echo 'geneID' > {output}
+        samtools idxstats $(ls {input.bam} | head -n 1) | grep -v "*" | cut -f1 >> {output}
         """
        
 rule gene_count:
@@ -162,19 +152,19 @@ rule gene_count:
         OUTPUT_DIR + "/logs/counts/{sample}.log"
     shell:
         """
-        samtools idxstats {input.bam} | grep -v "*" | cut -f3 > {output}
+        echo '{wildcards.sample}' > {output}
+        samtools idxstats {input.bam} | grep -v "*" | cut -f3 >> {output}
         """
 
 rule count_matrix:
     input:
-        gene_count=expand(OUTPUT_DIR + "/counts/{sample}.count", sample=SAMPLE),
-        header_sample=OUTPUT_DIR + "/header_sample",
         gene_name=OUTPUT_DIR + "/gene_names",
+        gene_count=expand(OUTPUT_DIR + "/counts/{sample}.count", sample=SAMPLE),
     output:
         OUTPUT_DIR + "/count_matrix.tsv"
     log:
         OUTPUT_DIR + "/logs/count_matrix.log"
     shell:
         """
-        paste {input.gene_name} {input.gene_count} | cat {input.header_sample} - > {output}
+        paste {input.gene_name} {input.gene_count} > {output}
         """
